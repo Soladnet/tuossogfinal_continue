@@ -1,6 +1,11 @@
 <?php
 
-//echo $_SERVER['HTTP_USER_AGENT'];
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+if (strstr($userAgent, "mobile")) {
+    $isMobile = TRUE;
+} else {
+    $isMobile = FALSE;
+}
 include_once './LoginClass.php';
 $confirm = new Login();
 if (isset($_GET['page'])) {

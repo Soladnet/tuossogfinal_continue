@@ -817,7 +817,6 @@ if (isset($_POST['param'])) {
             displayError(400, "The request cannot be fulfilled due to bad syntax");
         }
     } else if ($_POST['param'] == "likePost") {
-//        $doLike = false;
         $action = $_POST['action'];
         if (isset($_POST['uid']) && isset($_POST['postId'])) {
             $post_id = $_POST['postId'];

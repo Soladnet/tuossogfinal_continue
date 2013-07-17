@@ -10,6 +10,22 @@
     </ul> 
     <div class="clear"></div>
 </div>
+<span id="chatHolder"></span>
+<script>
+    $(document).ready(function() {
+        
+<?php
+if (isset($_COOKIE['cc'])) {
+    $cookieString = $_COOKIE['cc'];
+    $cookieArray = json_decode($cookieString, TRUE);
+//    foreach ($cookieArray as $key => $value) {
+//        echo "chat.init('$value[comid]', '$value[comname]', '$value[pix]');";
+//    }
+//    echo '$(".chatContainer").show();';
+}
+?>
+    });
+</script>
 <?php
 //include_once './googleanalytics.html';
 ?>

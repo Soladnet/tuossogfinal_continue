@@ -914,10 +914,10 @@ function loadGossbag(response, statusText, target) {
                     $('#all-notification-icon').addClass('showmore');
                 $('#loadMoreNotifDiv').show();
             }
-              
-            else{
-                $('#loadMoreNotifDiv').hide(); 
-            //               
+
+            else {
+                $('#loadMoreNotifDiv').hide();
+//               
             }
         }
         $(accept_frq_text).click(function() {
@@ -1305,9 +1305,11 @@ function loadCommunity(response, statusText, target) {
                 //load community details on aside column
                 $("#commTitle").html("<a href='" + target.comname + "'>" + (response.verified === "1" ? '<img src="images/gossout-verified.png" class="verified-community" <img src="images/gossout-verified.png" class="verified-community" title="Verified Community">' : "") + response.name + "</a>");
                 $("#commDesc").html(response.description.length > 250 ? (nl2br(linkify(response.description.substring(0, 250)))) + "<span style='display:none' id='comdisplayMoreDesc'>" + (nl2br(linkify(response.description.substring(250)))) + "</span>" + " <a id='commViewMoreDesc'>view more...</a>" : (nl2br(linkify(response.description))));
+                $(".openChatButton,#joinleave").attr("rel", response.id);
+                $(".openChatButton").attr("comname", response.name).attr("compix", response.thumbnail150);
+                ;
                 if (response.description) {
                     $("#metaDescription").attr("content", response.description.substring(0, 160));
-                    //                    alert($("#metaDescription").prop("content"));
                 } else {
                     $("#metaDescription").attr("content", "Start or join existing communities/interests on Gossout and start sharing pictures and videos. People use Gossout search, Discover and connect with communities");
                 }
@@ -1331,7 +1333,7 @@ function loadCommunity(response, statusText, target) {
                 $("#metaKeywords").attr("content", keywords.join());
                 $("#commUrl").html("<a href='" + target.comname + "'>www.gossout.com/" + target.comname + "</a>");
                 $("#comType").html((response.type === "Private" ? '<span class="icon-16-lock"></span>' : '') + response.type);
-                $("#joinleave").html(response.isAmember === "true" ? '<span class="icon-16-star-empty"></span> <span id="joinleave-text">Leave</span><input type="hidden" id="joinleave-comid" value="' + response.id + '"/>' : '<span class="icon-16-star"></span> <span id="joinleave-text">Join</span><input type="hidden" id="joinleave-comid" value="' + response.id + '"/>');
+                $("#joinleave").html(response.isAmember === "true" ? '<span class="icon-16-star-empty"></span> <span id="joinleave-text">Leave</span>' : '<span class="icon-16-star"></span> <span id="joinleave-text">Join</span>');
                 $("#mem_count").html(response.mem_count);
                 $("#post_count").html(response.post_count);
                 if (readCookie('user_auth') === 0) {
@@ -1410,7 +1412,7 @@ function loadCommunity(response, statusText, target) {
                         },
                         data: {
                             uid: readCookie("user_auth"),
-                            comid: $("#joinleave-comid").val()
+                            comid: $("#joinleave").attr("rel")
                         }
                     });
                 } else if (target.settings) {
@@ -1754,17 +1756,17 @@ function loadSuggestCommunity(response, statusText, target) {
         }
     }
 }
-function likePost(response, statusText, target){
+function likePost(response, statusText, target) {
     $(target.target).hide();
-    var holdLike = $("#likeAction-"+target.postId).html();
-    $("#likeAction-"+target.postId).html( holdLike==='Like' ? 'Unlike' : 'Like');
-    
-    (holdLike==='Like') ? $('#likeCount-'+target.postId).html(parseInt($('#likeCount-'+target.postId).html())+1) : $('#likeCount-'+target.postId).html(parseInt($('#likeCount-'+target.postId).html())-1);
-    if(holdLike==='Unlike'){
+    var holdLike = $("#likeAction-" + target.postId).html();
+    $("#likeAction-" + target.postId).html(holdLike === 'Like' ? 'Unlike' : 'Like');
+
+    (holdLike === 'Like') ? $('#likeCount-' + target.postId).html(parseInt($('#likeCount-' + target.postId).html()) + 1) : $('#likeCount-' + target.postId).html(parseInt($('#likeCount-' + target.postId).html()) - 1);
+    if (holdLike === 'Unlike') {
         watchLike(target.postId);
     }
-    $(".hideLikeCount#likeAction-showCount-"+target.postId).show();
-  
+    $(".hideLikeCount#likeAction-showCount-" + target.postId).show();
+
 }
 function loadPost(response, statusText, target) {
     if (!response.error) {
@@ -1783,21 +1785,20 @@ function loadPost(response, statusText, target) {
                 });
             }
             htmlstr += '<hr><h3 class="name"><img onload="OnImageLoad(event);" class="post-profile-pic" src="' + (responseItem.photo.nophoto ? responseItem.photo.alt : responseItem.photo.thumbnail45) + '"><a href="user/' + responseItem.username + '">' + responseItem.firstname.concat(' ', responseItem.lastname) + '</a>' +
-            '<div class="float-right">';
-            if(responseItem.likeCount == 0){
-                htmlstr += '<span class="post-time '+responseItem.id+ ' hideLikeCount" id="likeAction-showCount-'+responseItem.id+'"><span class="icon-16-heart post='+responseItem.id+'"></span><span id="likeCount-' + responseItem.id + '">' + responseItem.likeCount + '</span> </span>&nbsp;';
+                    '<div class="float-right">';
+            if (responseItem.likeCount == 0) {
+                htmlstr += '<span class="post-time ' + responseItem.id + ' hideLikeCount" id="likeAction-showCount-' + responseItem.id + '"><span class="icon-16-heart post=' + responseItem.id + '"></span><span id="likeCount-' + responseItem.id + '">' + responseItem.likeCount + '</span> </span>&nbsp;';
             }
-            else{
-                htmlstr += '<span class="post-time '+responseItem.id+ '" id="likeAction-showCount-'+responseItem.id+'"><span class="icon-16-heart post='+responseItem.id+'"></span><span id="likeCount-' + responseItem.id + '">' + responseItem.likeCount + '</span> </span>&nbsp;';
+            else {
+                htmlstr += '<span class="post-time ' + responseItem.id + '" id="likeAction-showCount-' + responseItem.id + '"><span class="icon-16-heart post=' + responseItem.id + '"></span><span id="likeCount-' + responseItem.id + '">' + responseItem.likeCount + '</span> </span>&nbsp;';
             }
             //             '<span class="post-time"><span class="icon-16-heart like-item" post='+responseItem.id+'> ' + responseItem.numComnt +' </span></span>' +
-            htmlstr +='<span class="post-time"><span class="icon-16-comment"></span><span id="numComnt-' + responseItem.id + '">' + responseItem.numComnt + '</span> </span>&nbsp;' +
-           
-            //                    '<span class="post-time"><span class="icon-16-share"></span>24</span>' +
-            '<span class="post-time"><span class="icon-16-clock"></span><span class="timeago" title="' + responseItem.time + '">' + responseItem.time + '</span></span>' +
-            '</div></h3></div><hr><div class="post-meta">';
+            htmlstr += '<span class="post-time"><span class="icon-16-comment"></span><span id="numComnt-' + responseItem.id + '">' + responseItem.numComnt + '</span> </span>&nbsp;' +
+                    //                    '<span class="post-time"><span class="icon-16-share"></span>24</span>' +
+                    '<span class="post-time"><span class="icon-16-clock"></span><span class="timeago" title="' + responseItem.time + '">' + responseItem.time + '</span></span>' +
+                    '</div></h3></div><hr><div class="post-meta">';
             if (target.uid !== 0) {
-                htmlstr += '<span class="post-meta-delete like-icon"><span class="icon-16-heart like-item" post='+responseItem.id+'></span><hold class="likeAction" id="likeAction-' + responseItem.id + '">'+(responseItem.isLike ? 'Unlike' : 'Like')+'</hold></span>&nbsp';
+                htmlstr += '<span class="post-meta-delete like-icon"><span class="icon-16-heart like-item" post=' + responseItem.id + '></span><hold class="likeAction" id="likeAction-' + responseItem.id + '">' + (responseItem.isLike ? 'Unlike' : 'Like') + '</hold></span>&nbsp';
             }
             //            (target.uid !== 0) ? '<span class="post-meta-delete"><span class="icon-16-heart"></span>Like </span>&nbsp' : "" +
             htmlstr += '<span id="post-new-comment-show-' + responseItem.id + '" class=""><span class="icon-16-comment"></span>Comment </span>';
@@ -1806,7 +1807,7 @@ function loadPost(response, statusText, target) {
                 htmlstr += '<span class="post-meta-gossout"><span class="icon-16-dot"></span><a href="login">Login</a> or <a href="signup-personal">sign-up</a> to add posts or comments</span>';
             }
             if (target.uid === responseItem.sender_id) {
-                htmlstr += '<span class="post-meta-delete" id="deletePost-' + responseItem.id + '"><span class="icon-16-trash"></span>Delete</span> &nbsp;<span class="likeLoader" id="likeLoader-'+responseItem.id+'" style="float:right;margin-top:-7px;"></span>';
+                htmlstr += '<span class="post-meta-delete" id="deletePost-' + responseItem.id + '"><span class="icon-16-trash"></span>Delete</span> &nbsp;<span class="likeLoader" id="likeLoader-' + responseItem.id + '" style="float:right;margin-top:-7px;"></span>';
             }
             htmlstr += '<div class="post-comments" id="post-comments-' + responseItem.id + '">' +
                     '</div><div class="post-new-comment" id="post-new-comment-' + responseItem.id + '">';
@@ -1902,15 +1903,15 @@ function loadPost(response, statusText, target) {
             showOption(this);
         });
         $('.hideLikeCount').hide();
-        $('.like-icon').click(function(){
+        $('.like-icon').click(function() {
             var postId = $(this).children('.like-item').attr('post');
-            var targetLoad = "#likeLoader-"+postId;
+            var targetLoad = "#likeLoader-" + postId;
             var doWhat = $(this).children('.likeAction').html();
             sendData("likePost", {
-                target: targetLoad, 
-                action:doWhat, 
-                loadImage: true, 
-                postId:postId
+                target: targetLoad,
+                action: doWhat,
+                loadImage: true,
+                postId: postId
             });
         });
     } else {
@@ -2501,7 +2502,7 @@ function showOption(obj) {
         } else {
             sendData("leaveJoinCommunity", {
                 target: "",
-                comid: $("#joinleave-comid").val(),
+                comid: $("#joinleave").attr("rel"),
                 param: $("#joinleave-text").html()
             });
         }
@@ -2636,7 +2637,7 @@ function showOption(obj) {
         if ($("#" + obj.id).hasClass("Open")) {
             if (!$("#" + obj.id).hasClass("loaded")) {
                 $("#" + obj.id).addClass("loaded");
-                var comId = $("#joinleave-comid").val();
+                var comId = $("#joinleave").attr("rel");
                 sendData("inviteFriends", {
                     target: "#toUserInput",
                     loadImage: true,
@@ -2663,14 +2664,36 @@ function showOption(obj) {
             });
         }
     } else if (obj.id === "chatButton") {
-        alert($("#" + obj.id).attr("rel"));
-//        $("body").append('<div class="chatContainer"><div class="chatTopBar rounded"></div><div class="chatLineHolder"></div><div class="chatUsers rounded"></div>' +
-//                '<div class="chatBottomBar rounded"><div class="tip"></div><form id="loginForm" method="post" action=""><input id="name" name="name" class="rounded" maxlength="16" />' +
-//                '<input id="email" name="email" class="rounded" /><input type="submit" class="blueButton" value="Login" /></form><form autocomplete="off" id="submitForm" method="post" action="">' +
-//                '<input name="chatText" class="chatText rounded" maxlength="255" /><input type="submit" class="blueButton" value="Submit" /></form></div></div>');
-//        // Run the init method on document ready:
-//        chat.init();
-//        $(".chatContainer").show();
+        var chatContainerWidth = $(".chatContainer").css("width") + "", d = 10, k = $(".chatContainer").length, l = 10, pos = 0, screen = $(window).width();
+        chatContainerWidth = chatContainerWidth.substring(0, chatContainerWidth.length - 2);
+        pos = (chatContainerWidth * k) + l * k + d;
+        if ($(".chatContainer").length === 0) {
+            $("#chatHolder").append('<div class="chatContainer" id="comChat_' + ($("#" + obj.id).attr("rel")) + '"><div class="chatTopBar rounded"></div><div class="chatLineHolder" id="chatLineHolder_' + ($("#" + obj.id).attr("rel")) + '"></div><div class="chatUsers rounded" id="chatUsers_' + ($("#" + obj.id).attr("rel")) + '"></div>' +
+                    '<div class="chatBottomBar rounded" id="chatBottomBar_' + ($("#" + obj.id).attr("rel")) + '"><div class="tip"></div><form id="loginForm" method="post" action=""><input id="name" name="name" class="rounded" maxlength="16" />' +
+                    '<input id="email" name="email" class="rounded" /><input type="submit" class="blueButton" value="Login" /></form><form autocomplete="off" id="submitForm" method="post" action="">' +
+                    '<textarea class="chatText rounded" name="chatText"></textarea></form></div></div>');
+            // checkChatBoxInputKey(event, chatboxtextarea, comId, comname, pix, working)
+            // Run the init method on document ready:
+            chat.init($("#" + obj.id).attr("rel"), $("#" + obj.id).attr("comname"), $("#" + obj.id).attr("compix"));
+            $(".chatContainer").show();
+        } else {
+            if ($("#comChat_" + $("#" + obj.id).attr("rel")).length > 0) {
+                $("#comChat_" + $("#" + obj.id).attr("rel")).focus();
+            } else {
+                $("#chatHolder").append('<div class="chatContainer" style="right:' + pos + 'px"><div class="chatTopBar rounded"></div><div class="chatLineHolder"></div><div class="chatUsers rounded"></div>' +
+                        '<div class="chatBottomBar rounded"><div class="tip"></div><form id="loginForm" method="post" action=""><input id="name" name="name" class="rounded" maxlength="16" />' +
+                        '<input id="email" name="email" class="rounded" /><input type="submit" class="blueButton" value="Login" /></form><form autocomplete="off" id="submitForm" method="post" action="">' +
+                        '<textarea class="chatText rounded" name="chatText"></textarea></form></div></div>');
+                // Run the init method on document ready:
+                chat.init($("#" + obj.id).attr("rel"), $("#" + obj.id).attr("comname"), $("#" + obj.id).attr("compix"));
+                $(".chatContainer").show();
+            }
+        }
+        $(".chatText").keydown(function(event) {
+            if (event.keyCode === 13 && !event.shiftKey) {
+                checkChatBoxInputKey(this, $("#" + obj.id).attr("rel"), $("#" + obj.id).attr("comname"), $("#" + obj.id).attr("compix"), false);
+            }
+        });
     } else {
         alert("Not Implemented");
     }
@@ -2781,6 +2804,7 @@ function linkify(inputText) {
 
     return replacedText;
 }
+var chatBoxes = new Array();
 var chat = {
     // data holds variables for use in the class:
     data: {
@@ -2788,7 +2812,7 @@ var chat = {
         noActivity: 0
     },
     // Init binds event listeners and sets up timers:
-    init: function() {
+    init: function(comId, comname, pix) {
         // Using the defaultText jQuery plugin, included at the bottom:
         $('#name').defaultText('Nickname');
         $('#email').defaultText('Email (Gravatars are Enabled)');
@@ -2814,7 +2838,7 @@ var chat = {
                     chat.displayError(r.error);
                 }
                 else
-                    chat.login(r.name, r.gravatar);
+                    chat.login(r.name, r.gravatar, comId, comname, pix);
             });
             return false;
         });
@@ -2832,7 +2856,7 @@ var chat = {
             var tempID = 't' + Math.round(Math.random() * 1000000),
                     params = {
                 id: tempID,
-                author: chat.data.name,
+                name: chat.data.name,
                 gravatar: chat.data.gravatar,
                 text: text.replace(/</g, '&lt;').replace(/>/g, '&gt;')
             };
@@ -2841,7 +2865,7 @@ var chat = {
             // to the screen immediately, without waiting for
             // the AJAX request to complete:
 
-            chat.addChatLine($.extend({}, params));
+            chat.addChatLine($.extend({}, params), comId, comname, pix);
 
             // Using our tzPOST wrapper method to send the chat
             // via a POST AJAX request:
@@ -2853,37 +2877,22 @@ var chat = {
                 $('div.chat-' + tempID).remove();
 
                 params['id'] = r.insertID;
-                chat.addChatLine($.extend({}, params));
+                chat.addChatLine($.extend({}, params), comId, comname, pix);
             });
 
             return false;
         });
-
         // Checking whether the user is already logged (browser refresh)
-        $.tzGET('checkLogged', function(r) {
+        $.tzGET('checkLogged', {comid: comId}, function(r) {
             if (r.logged) {
-                chat.login(r.loggedAs.name, r.loggedAs.gravatar);
+                chat.login(r.loggedAs.name, r.loggedAs.gravatar, comId, comname, pix);
                 //minimize chat windows
-                $('.minimize_user').on('click', function() {
-                    if ($(".chatLineHolder").css('display') !== 'none') {
-                        $(".chatLineHolder").hide();
-                        $(".chatUsers").hide();
-                        $(".chatBottomBar").hide();
-                    } else {
-                        $(".chatLineHolder").show();
-                        $(".chatUsers").show();
-                        $(".chatBottomBar").show();
-                    }
+                $('.minimize_chat_' + comId).on('click', function() {
+                    minimizeChatToggle(comId);
                 });
                 // Logging the user out:
                 $('.log_user_out').on('click', function() {
-                    $('.chatTopBar > span').fadeOut(function() {
-                        $(this).remove();
-                    });
-                    $('#submitForm').fadeOut(function() {
-                        $('#loginForm').fadeIn();
-                    });
-                    $.tzPOST('logout');
+                    logoutCommunityChat(comId);
                 });
             }
         });
@@ -2891,22 +2900,22 @@ var chat = {
         // Self executing timeout functions
 
         (function getChatsTimeoutFunction() {
-            chat.getChats(getChatsTimeoutFunction);
+            chat.getChats(getChatsTimeoutFunction, comId);
         })();
 
         (function getUsersTimeoutFunction() {
-            chat.getUsers(getUsersTimeoutFunction);
+            chat.getUsers(getUsersTimeoutFunction, comId);
         })();
 
     },
     // The login method hides displays the
     // user's login data and shows the submit form
 
-    login: function(name, gravatar) {
+    login: function(name, gravatar, comId, comname, pix) {
 
         chat.data.name = name;
         chat.data.gravatar = gravatar;
-        $('.chatTopBar').html(chat.render('loginTopBar', chat.data));
+        $('.chatTopBar').html(chat.render('loginTopBar', chat.data, comId, comname, pix));
 
         $('#loginForm').fadeOut(function() {
             $('#submitForm').fadeIn();
@@ -2917,16 +2926,15 @@ var chat = {
     // The render method generates the HTML markup 
     // that is needed by the other methods:
 
-    render: function(template, params) {
-
+    render: function(template, params, comId, comname, pix) {
         var arr = [];
         switch (template) {
             case 'loginTopBar':
                 arr = [
-                    '<span><img src="', params.gravatar, '" width="23" height="23" />',
-                    '<span class="name">', params.name,
+                    '<span><img src="', pix, '" width="23" height="23" />',
+                    '<span class="name">', comname,
                     '</span><span class="logoutButton rounded log_user_out">x</span>',
-                    '<span class="logoutButton rounded minimize_user">-</span>'/*,
+                    '<span class="logoutButton rounded minimize_chat_' + comId + '">-</span>'/*,
                      '<a href="" class="logoutButton rounded log_user_out">Logout</a></span>'*/
                 ];
                 break;
@@ -2934,8 +2942,8 @@ var chat = {
             case 'chatLine':
                 arr = [
                     '<div class="chat chat-', params.id, ' rounded"><span class="gravatar"><img src="', params.gravatar,
-                    '" width="23" height="23" onload="this.style.visibility=\'visible\'" />', '</span><span class="author">', params.author,
-                    ':</span><span class="text">', params.text, '</span><span class="time">', params.time, '</span></div>'];
+                    '" width="23" height="23" onload="this.style.visibility=\'visible\'" />', '</span><span class="author">', params.name,
+                    ':</span><br/><span class="text">', params.text, '</span><span class="time">', params.time, '</span></div>'];
                 break;
 
             case 'user':
@@ -2954,8 +2962,7 @@ var chat = {
     },
     // The addChatLine method ads a chat entry to the page
 
-    addChatLine: function(params) {
-
+    addChatLine: function(params, comId, comname, pix) {
         // All times are displayed in the user's timezone
 
         var d = new Date();
@@ -2971,7 +2978,7 @@ var chat = {
         params.time = (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' +
                 (d.getMinutes() < 10 ? '0' : '') + d.getMinutes();
 
-        var markup = chat.render('chatLine', params),
+        var markup = chat.render('chatLine', params, comId, comname, pix),
                 exists = $('.chatLineHolder .chat-' + params.id);
 
         if (exists.length) {
@@ -3007,11 +3014,10 @@ var chat = {
     // This method requests the latest chats
     // (since lastID), and adds them to the page.
 
-    getChats: function(callback) {
+    getChats: function(callback, comId, comname, pix) {
         $.tzGET('getChats', {lastID: chat.data.lastID}, function(r) {
-
             for (var i = 0; i < r.chats.length; i++) {
-                chat.addChatLine(r.chats[i]);
+                chat.addChatLine(r.chats[i], comId, comname, pix);
             }
 
             if (r.chats.length) {
@@ -3053,14 +3059,14 @@ var chat = {
     },
     // Requesting a list with all the users.
 
-    getUsers: function(callback) {
-        $.tzGET('getUsers', function(r) {
+    getUsers: function(callback, comId, comname, pix) {
+        $.tzGET('getUsers', {comid: comId}, function(r) {
 
             var users = [];
 
             for (var i = 0; i < r.users.length; i++) {
                 if (r.users[i]) {
-                    users.push(chat.render('user', r.users[i]));
+                    users.push(chat.render('user', r.users[i], comId, comname, pix));
                 }
             }
 
@@ -3070,7 +3076,7 @@ var chat = {
                 message = 'No one is online';
             }
             else {
-                message = r.total + ' ' + (r.total === 1 ? 'person' : 'people') + ' online';
+                message = r.total + ' ' + /*(r.total === 1 ? 'person' : 'people') +*/ ' online';
             }
 
             users.push('<p class="count">' + message + '</p>');
@@ -3101,14 +3107,50 @@ var chat = {
         elem.hide().appendTo('body').slideDown();
     }
 };
+function checkChatBoxInputKey(chatboxtextarea, comId, comname, pix, working) {
+    var text = $(chatboxtextarea).val();
+    if (text.length === 0) {
+        return false;
+    }
+    if (working)
+        return false;
+    working = true;
+
+    // Assigning a temporary ID to the chat:
+    var tempID = 't' + Math.round(Math.random() * 1000000),
+            params = {
+        id: tempID,
+        name: chat.data.name,
+        gravatar: chat.data.gravatar,
+        text: text.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    };
+    data = {chatText: text, comid: comId};
+    // Using our addChatLine method to add the chat
+    // to the screen immediately, without waiting for
+    // the AJAX request to complete:
+
+    chat.addChatLine($.extend({}, params), comId, comname, pix);
+
+    // Using our tzPOST wrapper method to send the chat
+    // via a POST AJAX request:
+
+    $.tzPOST('submitChat', data, function(r) {
+        working = false;
+        $('.chatText').val('');
+        $('div.chat-' + tempID).remove();
+        params['id'] = r.insertID;
+        chat.addChatLine($.extend({}, params), comId, comname, pix);
+    });
+    return false;
+}
 // Custom GET & POST wrappers:
 
 $.tzPOST = function(action, data, callback) {
-    $.post('php/ajax.php?action=' + action, data, callback, 'json');
+    $.post('ajax.php?action=' + action, data, callback, 'json');
 }
 
 $.tzGET = function(action, data, callback) {
-    $.get('php/ajax.php?action=' + action, data, callback, 'json');
+    $.get('ajax.php?action=' + action, data, callback, 'json');
 }
 
 // A custom jQuery method for placeholder text:
@@ -3129,4 +3171,21 @@ $.fn.defaultText = function(value) {
     });
 
     return element.blur();
+}
+function minimizeChatToggle(comId) {
+    if ($("#chatLineHolder_" + comId).css('display') !== 'none') {
+        $("#chatLineHolder_" + comId).hide();
+        $("#chatUsers_" + comId).hide();
+        $("#chatBottomBar_" + comId).hide();
+    } else {
+        $("#chatLineHolder_" + comId).show();
+        $("#chatUsers_" + comId).show();
+        $("#chatBottomBar_" + comId).show();
+    }
+}
+function logoutCommunityChat(comId) {
+    if($("#comChat_"+comId).length>0){
+        $("#comChat_"+comId).remove();
+    }
+    $.tzPOST('logout',{comid:comId});
 }

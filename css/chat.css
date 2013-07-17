@@ -2,7 +2,7 @@
 
 .chatContainer{
     width:510px;
-    position: absolute;
+    position: fixed;
     z-index: 99999;
     right: 10px;
     bottom: 0px;
@@ -11,6 +11,8 @@
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
     display: none;
+    background-color: #fff;
+    /*background-color: #99c43d;*/
 }
 
 
@@ -48,17 +50,19 @@
     height:360px;
     width:350px;
     margin-bottom:20px;
+    margin-left: 3px;
+    margin-top: 10px;
 }
 
 .chat{
-    background:url('../img/chat_line_bg.jpg') repeat-x #d5d5d5;
+    /*background:url('../images/chat_line_bg.jpg') repeat-x #d5d5d5;*/
     min-height:24px;
     padding:6px;
-    border:1px solid #FFFFFF;
+    border:1px solid #99c43d;
 
     padding:8px 6px 4px 37px;
     position:relative;
-    margin:0 10px 10px 0;
+    margin:0 2px 2px 0;
 }
 
 .chat:last-child{
@@ -80,10 +84,10 @@
     width:190px;
 }
 .chat .text, .chat .author{
-    font-size: .9em;
+    font-size: 0.7em;
 }
 .chat .gravatar{
-    background:url('http://www.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?size=23') no-repeat;
+    background:url('../images/user-no-pic.png') no-repeat;
     left:7px;
     position:absolute;
     top:7px;
@@ -111,21 +115,21 @@
 
 
 .chatUsers{
-    background-color:#202020;
+    background-color:#717272;
     border:1px solid #111111;
     height:360px;
     position:absolute;
-    right:0;
-    top:50px;
+    right:2px;
+    top:44px;
     width:150px;
 }
 
 .chatUsers .user{
-    background:url('http://www.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?size=30') no-repeat 1px 1px #444444;
-    border:1px solid #111111;
+    background:url('../images/user-no-pic.png') no-repeat 1px 1px #444444;
+    border:1px solid #fff;
     float:left;
     height:32px;
-    margin:10px 0 0 10px;
+    margin:4px 0 0 4px;
     width:32px;
 }
 
@@ -140,7 +144,7 @@
 
 
 .chatBottomBar{
-    background:url('../img/solid_gray.jpg') repeat-x #d0d0d0;
+    background:url('../images/solid_gray.jpg') repeat-x #d0d0d0;
     position:relative;
     padding:10px;
     border:1px solid #fff;
@@ -156,8 +160,8 @@
     left:20px;
 }
 
-.chatContainer input{
-    background:url('../img/input_bg.jpg') repeat-x #dcdcdc;
+.chatContainer textarea,.chatContainer input{
+    background-color: #dcdcdc;
     height:26px;
     font:13px/26px Calibri,Arial,sans-serif;
     color:#777;
@@ -168,6 +172,11 @@
     margin-right:5px;
     width:185px;
     outline:none;
+}
+.chatContainer textarea{
+    width:350px;
+    background-color: #fff;
+    height:100%;
 }
 
 
@@ -197,7 +206,7 @@ input.chatText{
 }
 
 .jspDrag {
-    background:url('../img/slider.png') no-repeat;
+    background:url('../images/slider.png') no-repeat;
     width:20px;
     left:-9px;
     height:20px !important;
@@ -239,7 +248,7 @@ span.logoutButton:hover{
 }
 
 .chatContainer .blueButton{
-    background:url('../img/button_blue.png') no-repeat;
+    background:url('../images/button_blue.png') no-repeat;
     border:none !important;
     color:#516D7F !important;
     display:inline-block;

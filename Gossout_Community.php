@@ -53,7 +53,6 @@ class Community {
         if ($mysql->connect_errno > 0) {
             throw new Exception("Connection to server failed!");
         } else {
-            $encrypt = new Encryption();
             if ($max) {
                 if ($comname) {
                     $sql = "SELECT id,creator_id,unique_name,`name`,category,`pix`,thumbnail100,thumbnail150,thumbnail150,`type`,description,verified,`enableMemberPost` FROM community WHERE unique_name='$comname'";
@@ -100,7 +99,7 @@ class Community {
                                 $row['post_count'] = 0;
                             }
                         }
-                        $row['creator_id'] = $encrypt->safe_b64encode($row['creator_id']);
+                        $row['creator_id'] = $this->encodeData($row['creator_id']);
                         $arr['community_list'][] = $row;
                     }
                     $arr['status'] = true;
@@ -179,7 +178,6 @@ class Community {
             if ($result = $mysql->query($sql)) {
                 if ($result->num_rows > 0) {
                     include_once './encryptionClass.php';
-                    $encrytp = new Encryption();
                     $user = new GossoutUser(0);
                     while ($row = $result->fetch_assoc()) {
                         $row['firstname'] = $this->toSentenceCase($row['firstname']);
@@ -198,7 +196,7 @@ class Community {
                             $row['isAfriend'] = FALSE;
                         }
                         $row['ministat'] = $user->getMiniStat();
-                        $row['id'] = $encrytp->safe_b64encode($row['id']);
+                        $row['id'] = $this->encodeData($row['id']);
                         $arr['com_mem'][] = $row;
                     }
                     shuffle($arr['com_mem']);
@@ -263,6 +261,31 @@ class Community {
         return $arr;
     }
 
+    public function getCommunityInfo() {
+        $mysql = new mysqli(HOSTNAME, USERNAME, PASSWORD, DATABASE_NAME);
+        $arr = array();
+        if ($mysql->connect_errno > 0) {
+            throw new Exception("Connection to server failed!");
+        } else {
+            $sql = "SELECT * from community WHERE id=$this->id";
+            if ($result = $mysql->query($sql)) {
+                if ($result->num_rows > 0) {
+                    $row = $result->fetch_assoc();
+                    $row['sql'] = $sql;
+                    $arr['comm'] = $row;
+                    $arr['status'] = TRUE;
+                } else {
+                    $arr['status'] = FALSE;
+                }
+                $result->free();
+            } else {
+                $arr['status'] = FALSE;
+            }
+        }
+        $mysql->close();
+        return $arr;
+    }
+
     /**
      * 
      * @param int newUid This id identifies the user to query
@@ -306,13 +329,12 @@ class Community {
     public function suggest() {
         $response = array();
         $arr = array();
-        $encrypt = new Encryption();
         $user = new GossoutUser($this->getUser());
         $userF = $user->getFriends(0, 1000);
         if ($userF['status']) {
             $com = new Community();
             foreach ($userF['friends'] as $friend) {
-                $com->setUser($encrypt->safe_b64decode($friend['id']));
+                $com->setUser($this->decodeData($friend['id']));
                 $userComm = $com->userComm(0, 1000, TRUE);
                 if ($userComm['status'])
                     foreach ($userComm['community_list'] as $mem) {
@@ -426,11 +448,10 @@ class Community {
             $sql = "SELECT if(uc.username1=$this->uid,uc.username2,uc.username1) as id,username,firstname, lastname From user_personal_info, usercontacts as uc Where ((username1 = user_personal_info.id AND username2 = $this->uid) OR (username2 = user_personal_info.id AND username1 = $this->uid)) AND status ='Y' AND (username1 NOT IN(SELECT user FROM community_subscribers WHERE `community_id`=$this->id AND leave_status=0) OR username2 NOT IN(SELECT user FROM community_subscribers WHERE `community_id`=$this->id AND leave_status=0))";
             if ($result = $mysql->query($sql)) {
                 if ($result->num_rows > 0) {
-                    $encrypt = new Encryption();
                     while ($row = $result->fetch_assoc()) {
                         $row['firstname'] = $this->toSentenceCase($row['firstname']);
                         $row['lastname'] = $this->toSentenceCase($row['lastname']);
-                        $row['id'] = $encrypt->safe_b64encode($row['id']);
+                        $row['id'] = $this->encodeData($row['id']);
                         $arrFetch['friends'][] = $row;
                     }
                     $arrFetch['status'] = TRUE;
@@ -645,7 +666,6 @@ class Community {
         if ($mysql->connect_errno > 0) {
             throw new Exception("Connection to server failed!");
         } else {
-            $encrypt = new Encryption();
             $sql = "SELECT id,unique_name,`name`,`type`,description,thumbnail150,verified FROM community WHERE (`name` LIKE '%$term%' OR unique_name LIKE '%$term%' OR description LIKE '%$term%') AND `type`='Public' LIMIT $this->start,$this->limit";
             if ($result = $mysql->query($sql)) {
                 if ($result->num_rows > 0) {
@@ -677,6 +697,36 @@ class Community {
         }
         $mysql->close();
         return $arrFetch;
+    }
+
+    function encodeData($param, $useBase64 = TRUE) {
+        $encrypt = new Encryption();
+        if ($useBase64) {
+            return $encrypt->safe_b64encode($param);
+        } else {
+            return $encrypt->encode($param);
+        }
+    }
+
+    function decodeData($param, $useBase64 = TRUE) {
+        $encrypt = new Encryption();
+        if ($useBase64) {
+            return $encrypt->safe_b64decode($param);
+        } else {
+            return $encrypt->decode($param);
+        }
+    }
+
+    public function clean($value) {
+        // If magic quotes not turned on add slashes.
+        if (!get_magic_quotes_gpc()) {
+            // Adds the slashes.
+            $value = addslashes($value);
+        }
+        // Strip any tags from the value.
+        $value = strip_tags($value);
+        // Return the value out of the function.
+        return $value;
     }
 
 }

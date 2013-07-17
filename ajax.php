@@ -11,11 +11,11 @@ $dbOptions = array(
 /* Database Config End */
 error_reporting(E_ALL ^ E_NOTICE);
 
-require "classes/DB.class.php";
-require "classes/Chat.class.php";
-require "classes/ChatBase.class.php";
-require "classes/ChatLine.class.php";
-require "classes/ChatUser.class.php";
+require "DB.class.php";
+require "Chat.class.php";
+require "ChatBase.class.php";
+require "ChatLine.class.php";
+require "ChatUser.class.php";
 if (session_id() == "") {
     session_name('GSID');
     session_start();
@@ -37,16 +37,16 @@ try {
             $response = Chat::login($_POST['name'], $_POST['email']);
             break;
         case 'checkLogged':
-            $response = Chat::checkLogged();
+            $response = Chat::checkLogged($_GET['uid'],$_GET['comid']);
             break;
         case 'logout':
-            $response = Chat::logout();
+            $response = Chat::logout($_POST['comid'],$_GET['uid']);
             break;
         case 'submitChat':
-            $response = Chat::submitChat($_POST['chatText']);
+            $response = Chat::submitChat($_POST['chatText'], $_POST['comid'], $_POST['uid']);
             break;
         case 'getUsers':
-            $response = Chat::getUsers();
+            $response = Chat::getUsers($_GET['uid'],$_GET['comid']);
             break;
         case 'getChats':
             $response = Chat::getChats($_GET['lastID']);

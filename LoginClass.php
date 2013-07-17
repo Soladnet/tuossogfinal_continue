@@ -1,7 +1,7 @@
 <?php
 
 //if (session_status() == PHP_SESSION_NONE) {
-if (session_id() == ""){
+if (session_id() == "") {
     session_name('GSID');
     session_start();
 }
@@ -21,8 +21,12 @@ class Login extends Encryption {
         $this->user = $this->clean($username);
     }
 
-    public function setPassword($password) {
+    public function setPassword($password, $encrypt = TRUE) {
+        if($encrypt){
         $this->pass = md5($password);
+        }else{
+            $this->pass = $password;
+    }
     }
 
     public function setRememberStatus($remember = FALSE) {

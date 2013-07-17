@@ -14,6 +14,9 @@ if (isset($_COOKIE['user_auth'])) {
     $user = new GossoutUser(0);
     $userProfile = $user->getProfile();
 }
+//echo "<pre>";
+//print_r($_SESSION);
+//echo "</pre>";
 ?>
 <!doctype html>
 <html lang="en">
@@ -29,6 +32,17 @@ if (isset($_COOKIE['user_auth'])) {
         <link rel="stylesheet" type="text/css" href="css/jquery.jscrollpane.css" />
         <link rel="stylesheet" type="text/css" href="css/chat.css" />
         <?php
+        if (isset($_GET['param']) ? $_GET['param'] != "" ? $_GET['param'] : FALSE  : FALSE) {
+            ?>
+            <style>
+                .progress { position:relative; width:60%; border: 1px solid #ddd; padding: 1px; border-radius: 3px; }
+                .bar { background-color: #B4F5B4; width:0%; height:20px; border-radius: 3px; }
+                .percent { position:absolute; display:inline-block; top:3px; left:48%; }
+            </style>
+            <?php
+        }
+        ?>
+        <?php
         include ("head.php");
         ?>
         <script type="text/javascript" src="scripts/humane.min.js"></script>
@@ -43,17 +57,6 @@ if (isset($_COOKIE['user_auth'])) {
         <script src="scripts/jquery.mousewheel.js"></script>
         <script src="scripts/mwheelIntent.js"></script>
         <script src="scripts/jquery.jscrollpane.min.js"></script>
-        <?php
-        if (isset($_GET['param']) ? $_GET['param'] != "" ? $_GET['param'] : FALSE  : FALSE) {
-            ?>
-            <style>
-                .progress { position:relative; width:60%; border: 1px solid #ddd; padding: 1px; border-radius: 3px; }
-                .bar { background-color: #B4F5B4; width:0%; height:20px; border-radius: 3px; }
-                .percent { position:absolute; display:inline-block; top:3px; left:48%; }
-            </style>
-            <?php
-        }
-        ?>
         <script type="text/javascript">
             var current;
             $(document).ready(function() {
@@ -211,11 +214,5 @@ if (isset($_COOKIE['user_auth'])) {
             include("footer.php");
             ?>
         </div>
-
-        <script>
-
-
-
-        </script>
     </body>
 </html>

@@ -184,11 +184,10 @@ class Post {
                 $sql = "INSERT INTO `like` (`post_id`,`user_id`) VALUES ('$post_id', '$uid')";
             if ($action == 'Unlike')
                 $sql = "Delete From `like` WHERE `user_id` = '$uid'";
+            
             if ($result = $mysql->query($sql)) {
                 ($mysql->affected_rows > 0) ? $status = true : '';
-            } else {
-                $arr['sql'] = $sql;
-            }
+            } 
         }
         $mysql->close();
         $arr['status'] = $status;

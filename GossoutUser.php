@@ -7,7 +7,7 @@ include_once './Post.php';
 
 class GossoutUser {
 
-    var $id, $fname, $lname, $fullname, $location, $gender, $url, $like, $tel, $email, $screenName = "", $dob, $pix = array(), $tz, $start = 0, $limit = 5;
+    var $id, $fname, $lname, $password, $fullname, $location, $gender, $url, $like, $tel, $email, $screenName = "", $dob, $pix = array(), $tz, $start = 0, $limit = 5;
 
     /**
      * @author Soladnet Software
@@ -57,6 +57,24 @@ class GossoutUser {
             }
             return $response;
         }
+    }
+
+    public function getPassword() {
+        $response['status'] = FALSE;
+        $mysql = new mysqli(HOSTNAME, USERNAME, PASSWORD, DATABASE_NAME);
+        if ($mysql->connect_errno > 0) {
+            throw new Exception("Connection to server failed!");
+        } else {
+            if (!empty($this->id)) {
+                $sql = "SELECT * FROM `user_login_details` WHERE id=$this->id";
+                if ($result = $mysql->query($sql)) {
+                    if ($result->num_rows > 0) {
+                        $response['status'] = TRUE;
+                    }
+                }
+            }
+        }
+        return $response;
     }
 
     public function isAvalidUser() {
@@ -240,7 +258,7 @@ class GossoutUser {
 
     public function setUserId($newUid) {
         if (is_null($newUid)) {
-            unset($this->id, $this->fname, $this->lname, $this->fullname, $this->location, $this->gender, $this->url, $this->tel, $this->email, $this->dob, $this->pix, $this->tz);
+            unset($this->id, $this->fname, $this->lname, $this->password, $this->fullname, $this->location, $this->gender, $this->url, $this->tel, $this->email, $this->dob, $this->pix, $this->tz);
             $this->screenName = "";
             $this->pix = array();
             $this->start = 0;
@@ -570,7 +588,6 @@ class GossoutUser {
             if ($result = $mysql->query($str)) {
                 if ($result->num_rows > 0) {
                     $user = new GossoutUser(0);
-                    $encrypt = new Encryption();
                     while ($row = $result->fetch_assoc()) {
                         $row['firstname'] = $this->toSentenceCase($row['firstname']);
                         $row['lastname'] = $this->toSentenceCase($row['lastname']);
@@ -582,7 +599,7 @@ class GossoutUser {
                             $row['photo'] = array("nophoto" => TRUE, "alt" => $pix['alt']);
                         }
                         $row['ministat'] = $user->getMiniStat();
-                        $row['id'] = $encrypt->safe_b64encode($row['id']);
+                        $row['id'] = $this->encodeData($row['id']);
                         $arrFetch['friends'][] = $row;
                     }
                     if ($shuffle) {
@@ -661,14 +678,13 @@ class GossoutUser {
         if ($mysql->connect_errno > 0) {
             throw new Exception("Connection to server failed!");
         } else {
-            $encrypt = new Encryption();
             //suggest frinds of my friends
             $my = $this->getFriends(0, 1000);
             $arr = array();
             if ($my['status']) {
                 $user = new GossoutUser(0);
                 foreach ($my['friends'] as $friend) {
-                    $fid = $encrypt->safe_b64decode($friend['id']);
+                    $fid = $this->decodeData($friend['id']);
                     $user->setUserId($fid);
                     $userFriend = $user->getFriends(0, 1000);
                     if ($userFriend['status']) {
@@ -699,7 +715,7 @@ class GossoutUser {
                 }
             }
             if ($arrfetch['status']) {
-                unset($arr[$encrypt->safe_b64encode($this->id)]);
+                unset($arr[$this->encodeData($this->id)]);
 //                unset($arr[$this->id]);
                 if ($my['status']) {
                     foreach ($my['friends'] as $friend) {
@@ -831,7 +847,6 @@ class GossoutUser {
                 if ($result->num_rows > 0) {
                     $user->setScreenName("");
                     $i = 0;
-                    $encrypt = new Encryption();
                     while ($row = $result->fetch_assoc()) {
                         $row['s_firstname'] = $this->toSentenceCase($row['s_firstname']);
                         $row['s_lastname'] = $this->toSentenceCase($row['s_lastname']);
@@ -861,9 +876,9 @@ class GossoutUser {
                             $mysql->query("UPDATE `privatemessae` SET `status`='R' WHERE (sender_id='$row[sender_id]' AND receiver_id='$row[receiver_id]')");
                         }
                         $row['message'] = nl2br($row['message']);
-                        $row['id'] = $encrypt->safe_b64encode($row['id']);
-                        $row['sender_id'] = $encrypt->safe_b64encode($row['sender_id']);
-                        $row['receiver_id'] = $encrypt->safe_b64encode($row['receiver_id']);
+                        $row['id'] = $this->encodeData($row['id']);
+                        $row['sender_id'] = $this->encodeData($row['sender_id']);
+                        $row['receiver_id'] = $this->encodeData($row['receiver_id']);
                         $row['time'] = $this->convert_time_zone($row['time'], $this->tz);
                         $arrFetch['message']['conversation'][] = $row;
                     }
@@ -895,7 +910,6 @@ class GossoutUser {
         if ($mysql->connect_errno > 0) {
             throw new Exception("Connection to server failed!");
         } else {
-            $encrypt = new Encryption();
             $user = new GossoutUser(0);
             //post notiif
             if ($checkTime) {//get posts for this user from the last updated time
@@ -918,7 +932,7 @@ class GossoutUser {
                             $row['photo'] = array("nophoto" => TRUE, "alt" => $pix['alt']);
                         }
                         $row['time'] = $this->convert_time_zone($row['time'], $this->tz);
-                        $row['sender_id'] = $encrypt->safe_b64encode($row['sender_id']);
+                        $row['sender_id'] = $this->encodeData($row['sender_id']);
                         $arrFetch['bag'][] = $row;
                     }
                     $arrFetch['status'] = TRUE;
@@ -982,8 +996,8 @@ class GossoutUser {
                         } else {
                             $row['photo'] = array("nophoto" => TRUE, "alt" => $pix['alt']);
                         }
-                        $row['id'] = $encrypt->safe_b64encode($row['id']);
-                        $row['sender_id'] = $encrypt->safe_b64encode($row['sender_id']);
+                        $row['id'] = $this->encodeData($row['id']);
+                        $row['sender_id'] = $this->encodeData($row['sender_id']);
                         $row['time'] = $this->convert_time_zone($row['time'], $this->tz);
                         $arrFetch['bag'][] = $row;
                     }
@@ -1014,7 +1028,7 @@ class GossoutUser {
                         } else {
                             $row['photo'] = array("nophoto" => TRUE, "alt" => $pix['alt']);
                         }
-                        $row['id'] = $encrypt->safe_b64encode($row['id']);
+                        $row['id'] = $this->encodeData($row['id']);
                         $row['time'] = $this->convert_time_zone($row['time'], $this->tz);
                         $arrFetch['bag'][] = $row;
                     }
@@ -1039,7 +1053,7 @@ class GossoutUser {
                         $row['lastname'] = $this->toSentenceCase($row['lastname']);
                         $row['type'] = "frq";
                         $user->setUserId($row['username1']);
-                        $row['username1'] = $encrypt->safe_b64encode($row['username1']);
+                        $row['username1'] = $this->encodeData($row['username1']);
                         $pix = $user->getProfilePix();
                         if ($pix['status']) {
                             $row['photo'] = $pix['pix'];
@@ -1094,7 +1108,6 @@ class GossoutUser {
         if ($mysql->connect_errno > 0) {
             throw new Exception("Connection to server failed!");
         } else {
-            $encrypt = new Encryption();
             $user = new GossoutUser(0);
             $com = new Community();
             //post notiif
@@ -1128,7 +1141,7 @@ class GossoutUser {
                             $row['post_photo'] = $post_image['photo'];
                         }
                         $row['time'] = $this->convert_time_zone($row['time'], $this->tz);
-                        $row['sender_id'] = $encrypt->safe_b64encode($row['sender_id']);
+                        $row['sender_id'] = $this->encodeData($row['sender_id']);
                         $arrFetch['timeline'][] = $row;
                     }
                     $arrFetch['status'] = TRUE;
@@ -1234,9 +1247,9 @@ class GossoutUser {
                     $sql = "INSERT INTO `user_login_details`(`id`, `password`, `token`) VALUES ('$newUid','$password','$token')";
                     $mysql->query($sql);
                     if ($mysql->affected_rows > 0) {
-                        $encrypt = new Encryption();
-                        setcookie("user_auth", $encrypt->safe_b64encode($newUid), 0);
-                        setcookie("ro", $encrypt->safe_b64encode($encrypt->encode(md5(sha1($encrypt->safe_b64encode($newUid))))), 0);
+                        $e = new Encryption();
+                        setcookie("user_auth", $this->encodeData($newUid), 0);
+                        setcookie("ro", $this->encodeData($e->encode(md5(sha1($this->encodeData($newUid))))), 0);
                         $this->setUserId($newUid);
                         $user = $this->getProfile();
                         $_SESSION['auth'] = $user['user'];
@@ -1515,7 +1528,6 @@ class GossoutUser {
         if ($mysql->connect_errno > 0) {
             throw new Exception("Connection to server failed!");
         } else {
-            $encrypt = new Encryption();
             $arr = explode(' ', $term);
             $searchCombination = "";
             if (count($arr) == 1) {
@@ -1545,7 +1557,7 @@ class GossoutUser {
                             $row['photo'] = array("nophoto" => TRUE, "alt" => $pix['alt']);
                         }
                         $row['dateJoined'] = $this->dateToString($row['dateJoined'], TRUE);
-                        $row['id'] = $encrypt->safe_b64encode($row['id']);
+                        $row['id'] = $this->encodeData($row['id']);
                         $arrFetch['people'][] = $row;
                     }
                     $arrFetch['status'] = TRUE;
@@ -1567,7 +1579,6 @@ class GossoutUser {
         if ($mysql->connect_errno > 0) {
             throw new Exception("Connection to server failed!");
         } else {
-            $encrypt = new Encryption();
             $user = new GossoutUser(0);
             $sql = "SELECT t.`id`, t.`sender_id`,u.username,u.firstname,u.lastname, t.`type`, t.`time`, t.`status` FROM `tweakwink` as t JOIN user_personal_info as u ON t.sender_id=u.id  WHERE t.`receiver_id` =$this->id AND status='N' order by t.id desc Limit $this->start, $this->limit";
 
@@ -1588,8 +1599,8 @@ class GossoutUser {
                         } else {
                             $row['photo'] = array("nophoto" => TRUE, "alt" => $pix['alt']);
                         }
-                        $row['id'] = $encrypt->safe_b64encode($row['id']);
-                        $row['sender_id'] = $encrypt->safe_b64encode($row['sender_id']);
+                        $row['id'] = $this->encodeData($row['id']);
+                        $row['sender_id'] = $this->encodeData($row['sender_id']);
                         $row['time'] = $this->convert_time_zone($row['time'], $this->tz);
                         $arrFetch['bag'][] = $row;
                     }
@@ -1612,7 +1623,6 @@ class GossoutUser {
         if ($mysql->connect_errno > 0) {
             throw new Exception("Connection to server failed!");
         } else {
-            $encrypt = new Encryption();
             $user = new GossoutUser(0);
             $sql2 = "SELECT c.id,c.comment, c.post_id,c.sender_id,com.unique_name, com.name, u.username, u.firstname,u.lastname,p.sender_id as post_sender_id,c.time FROM comments as c JOIN post as p ON c.post_id=p.id JOIN user_personal_info as u ON c.sender_id=u.id JOIN community as com ON p.community_id=com.id WHERE p.sender_id=$this->id UNION Select c.id,c.comment, c.post_id,c.sender_id,com.unique_name,com.name,u.username,u.firstname,u.lastname,p.sender_id as post_sender_id, c.time From comments as c JOIN user_personal_info as u ON c.sender_id=u.id JOIN post as p ON c.post_id=p.id JOIN community as com ON p.community_id=com.id Where
  c.sender_id IN(select DISTINCT user from community_subscribers where community_id IN (Select community_id from community_subscribers where user = $this->id)) AND p.sender_id = $this->id AND c.sender_id IN (Select if(uc.username1=$this->id,uc.username2,uc.username1) as id From usercontacts as uc, user_personal_info Where ((username1 = user_personal_info.id AND username2 = $this->id) OR (username2 = user_personal_info.id AND username1 = $this->id)) AND status ='Y') order by time desc Limit $this->start, $this->limit";
@@ -1653,7 +1663,6 @@ class GossoutUser {
         if ($mysql->connect_errno > 0) {
             throw new Exception("Connection to server failed!");
         } else {
-            $encrypt = new Encryption();
             $user = new GossoutUser(0);
             $sql3 = "SELECT uc.username1,uc.`time`,u.username,u.firstname,u.lastname FROM usercontacts as uc JOIN user_personal_info as u ON uc.username1=u.id WHERE username2=$this->id AND status='N' order by uc.id desc LIMIT $this->start,$this->limit";
             if ($result = $mysql->query($sql3)) {
@@ -1670,7 +1679,7 @@ class GossoutUser {
                         } else {
                             $row['photo'] = array("nophoto" => TRUE, "alt" => $pix['alt']);
                         }
-                        $row['username1'] = $encrypt->safe_b64encode($row['username1']);
+                        $row['username1'] = $this->encodeData($row['username1']);
                         $row['time'] = $this->convert_time_zone($row['time'], $this->tz);
                         $arrFetch['bag'][] = $row;
                     }
@@ -1693,7 +1702,6 @@ class GossoutUser {
         if ($mysql->connect_errno > 0) {
             throw new Exception("Connection to server failed!");
         } else {
-            $encrypt = new Encryption();
             $user = new GossoutUser(0);
             $sql1 = "Select p.id,p.post, c.unique_name,p.sender_id,c.name,u.username,u.firstname,u.lastname, p.time From post as p JOIN user_personal_info as u ON p.sender_id=u.id JOIN community as c ON p.community_id=c.id Where p.sender_id IN(select user from community_subscribers where community_id IN (Select community_id from community_subscribers where user = $this->id AND leave_status=0)) AND p.sender_id IN (Select if(uc.username1=$this->id,uc.username2,uc.username1) as id From usercontacts as uc, user_personal_info Where ((username1 = user_personal_info.id AND username2 = $this->id) OR (username2 = user_personal_info.id AND username1 = $this->id)) AND status ='Y') AND p.`deleteStatus`=0 order by p.id desc Limit $this->start, $this->limit";
 
@@ -1712,7 +1720,7 @@ class GossoutUser {
                             $row['photo'] = array("nophoto" => TRUE, "alt" => $pix['alt']);
                         }
                         $row['time'] = $this->convert_time_zone($row['time'], $this->tz);
-                        $row['sender_id'] = $encrypt->safe_b64encode($row['sender_id']);
+                        $row['sender_id'] = $this->encodeData($row['sender_id']);
                         $arrFetch['bag'][] = $row;
                     }
                     $arrFetch['status'] = TRUE;

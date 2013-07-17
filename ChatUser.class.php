@@ -9,10 +9,15 @@ class ChatUser extends ChatBase {
         DB::query("
 			INSERT INTO community_chat_online (com_id,user_id)
 			VALUES (
-				'" . DB::esc($this->user_id) . "',
-				'" . DB::esc($this->com_id) . "'
-		)");
-
+				'" . DB::esc($this->com_id) . "',
+				'" . DB::esc($this->user_id) . "'
+		)ON DUPLICATE KEY UPDATE time = NOW(),isOnline=1");
+//        echo "
+//			INSERT INTO community_chat_online (com_id,user_id)
+//			VALUES (
+//				'" . DB::esc($this->com_id) . "',
+//				'" . DB::esc($this->user_id) . "'
+//		)ON DUPLICATE KEY UPDATE time = NOW(),isOnline=1";
         return DB::getMySQLiObject();
     }
 
@@ -20,9 +25,9 @@ class ChatUser extends ChatBase {
         DB::query("
 			INSERT INTO community_chat_online (com_id,user_id)
 			VALUES (
-				'" . DB::esc($this->user_id) . "',
-				'" . DB::esc($this->com_id) . "'
-			) ON DUPLICATE KEY UPDATE last_activity = NOW()");
+				'" . DB::esc($this->com_id) . "',
+				'" . DB::esc($this->user_id) . "'
+			) ON DUPLICATE KEY UPDATE time = NOW(),isOnline=1");
     }
 
 }
