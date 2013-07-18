@@ -60,7 +60,7 @@ if (isset($_COOKIE['user_auth'])) {
 
                 <?php  ?>
                     <div class="index-intro-2-container">
-                        <div class="index-intro-2" id='index-three-icon'>
+                        <div class="index-intro-2" id='index-three-icon' style="max-width:700px;">
                             <a href='terms'>
                                 <div class="index-functions" id="index-search-icon" style='width:230px;'>
                                     <div style="margin: 0 auto; width:68px">
