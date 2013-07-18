@@ -1,6 +1,6 @@
 <?php
 
-if (session_id() == ""){
+if (session_id() == "") {
     session_name('GSID');
     session_start();
 }
@@ -151,10 +151,15 @@ if (isset($_POST['param'])) {
                     if (isset($_POST['limit']) && is_numeric($_POST['limit'])) {
                         $limit = $_POST['limit'];
                     }
-                    if (isset($_POST['newuser']) && $_POST['newuser']) {
-                        $comm->setNewUser();
+                    if (isset($_POST['comType']) && $_POST['comType'] == 'allCom') {
+                        $allcom = true;
                     }
-
+//                    if (isset($_POST['newuser']) && $_POST['newuser']) {
+//                        $comm->setNewUser();
+//                    }
+                    if (isset($allcom) && $allcom) {
+                        $comm->setAllCom();
+                    }
                     $user_comm = $comm->userComm($start, $limit, $_POST['max'], isset($_POST['comname']) ? ($_POST['comname'] == "" ? FALSE : $_POST['comname']) : FALSE); //$_POST['comname'] == "" ? FALSE : $_POST['comname']
                     if ($user_comm['status']) {
                         echo json_encode($user_comm['community_list']);
@@ -804,6 +809,7 @@ if (isset($_POST['param'])) {
                     $tz = "Africa/Lagos";
                 }
                 $post->setTimezone($tz);
+                $post->setUserId($id);
                 $load = $post->loadPost();
                 if ($load['status']) {
                     echo json_encode($load['post']);
@@ -831,6 +837,7 @@ if (isset($_POST['param'])) {
                 } else {
                     $tz = "Africa/Lagos";
                 }
+                $post->setUserId($id);
                 $doLike = $post->manageLikePost($action, $post_id, $id);
                 echo json_encode($doLike);
             } else {
@@ -1233,7 +1240,8 @@ if (isset($_POST['param'])) {
                         if (trim($_POST['fname']) != "" && trim($_POST['lname']) != "") {
                             $x = $user->updateFirstname(clean($_POST['fname']));
                             $y = $user->updateLastname(clean($_POST['lname']));
-                            $z = $user->updateInterestTag(clean(implode(',', $_POST['comTag'])));
+                            if (isset($_POST['comTag']) && trim($_POST['comTag']) != "")
+                                $z = $user->updateInterestTag(clean(implode(',', $_POST['comTag'])));
                             if ($x['status'] || $y['status'] || $z['status']) {
                                 $status['status'] = TRUE;
                             } else {
@@ -1405,7 +1413,7 @@ if (isset($_POST['param'])) {
                         } else {
                             $status = $com->enablePostStatus("1", clean($_POST['helve']));
                         }
-                        if (isset($_POST['comTag'])) {
+                        if (isset($_POST['comTag']) && trim($_POST['comTag']) != "") {
                             $status = $com->updateCommunityTag(clean(implode(',', $_POST['comTag'])), clean($_POST['helve']));
                         }
                         if ($status['status']) {
@@ -1425,7 +1433,7 @@ if (isset($_POST['param'])) {
                     } else {
                         $status = $com->enablePostStatus("1", clean($_POST['helve']));
                     }
-                    if (isset($_POST['comTag'])) {
+                    if (isset($_POST['comTag']) && trim($_POST['comTag']) != "") {
                         $status = $com->updateCommunityTag(clean(implode(',', $_POST['comTag'])), clean($_POST['helve']));
                     }
                     if ($status['status']) {
@@ -1516,7 +1524,7 @@ if (isset($_POST['param'])) {
                             } else {
                                 $resp = $com->enablePostStatus("1", clean($_POST['helve']));
                             }
-                            if (isset($_POST['comTag'])) {
+                            if (isset($_POST['comTag']) && trim($_POST['comTag']) != "") {
                                 $resp = $com->updateCommunityTag(clean(implode(',', $_POST['comTag'])), clean($_POST['helve']));
                             }
                             if (isset($_POST['privacy'])) {
@@ -1537,7 +1545,7 @@ if (isset($_POST['param'])) {
                     } else {
                         $resp = $com->enablePostStatus("1", clean($_POST['helve']));
                     }
-                    if (isset($_POST['comTag'])) {
+                    if (isset($_POST['comTag']) && trim($_POST['comTag']) != "") {
                         $resp = $com->updateCommunityTag(clean(implode(',', $_POST['comTag'])), clean($_POST['helve']));
                     }
                     if (isset($_POST['privacy'])) {

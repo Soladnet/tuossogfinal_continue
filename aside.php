@@ -52,7 +52,7 @@ if (isset($user)) {
     </div>
     <?php if ($user->getId() != 0) { ?>
         <div class="aside-wrapper" id="aside-wrapper-comm">
-            <h3><a href="communities">Communities</a></h3>
+            <h3><a href="communities">My Communities</a></h3>
             <span id="aside-community-list"></span>
             <p class="community-listing">
                 <span>
@@ -63,7 +63,7 @@ if (isset($user)) {
                         <?php
                     }
                     ?>
-                    <span><span class="icon-16-dot"></span><a id="show-suggested-community">Suggested Communities</a></span>
+                    <!--<span><span class="icon-16-dot"></span><a id="show-suggested-community" href="communities">Explore all Communities</a></span>-->
                 </span>
             </p>
         </div>

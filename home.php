@@ -28,6 +28,11 @@ if (isset($_COOKIE['user_auth'])) {
         <link rel="stylesheet" href="css/jackedup.css" />
         <link rel="stylesheet" href="css/chosen.css" />
         <link rel=" stylesheet" type="text/css" href="css/joyride-2.0.3.css">
+        <style>
+            .progress { position:relative; width:60%; border: 1px solid #ddd; padding: 1px; border-radius: 3px; }
+            .bar { background-color: #B4F5B4; width:0%; height:20px; border-radius: 3px; }
+            .percent { position:absolute; display:inline-block; top:3px; left:48%; }
+        </style>
         <?php
         include ("head.php");
         ?>
@@ -178,11 +183,6 @@ if (isset($_COOKIE['user_auth'])) {
                 });
             }
         </script>
-        <style>
-            .progress { position:relative; width:60%; border: 1px solid #ddd; padding: 1px; border-radius: 3px; }
-            .bar { background-color: #B4F5B4; width:0%; height:20px; border-radius: 3px; }
-            .percent { position:absolute; display:inline-block; top:3px; left:48%; }
-        </style>
     </head>
     <body>
         <div class="page-wrapper">

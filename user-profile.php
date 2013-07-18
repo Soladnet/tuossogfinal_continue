@@ -117,7 +117,7 @@ if (isset($isfriend)) {
                 var user = readCookie("user_auth");
                 if (user !== 0 && user !== "")
                     sendData("loadNotificationCount", {title: document.title});
-                sendData("loadTimeline", {target: ".timeline-container", uid: "<?php echo $user->encodeData($user->getId()) ?>", t: true, loadImage: true});
+                sendData("loadTimeline", {target: ".timeline-container", uid: "<?php echo $user->encodeData($user->getId()) ?>", t: true, loadImage: true, start:0, limit:20});
                 $(".chzn-select").chosen();
                 $(".fancybox").fancybox({
                     openEffect: 'none',

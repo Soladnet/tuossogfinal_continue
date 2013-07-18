@@ -15,7 +15,7 @@ include_once './encryptionClass.php';
  */
 class Community {
 
-    var $uid, $id, $start = 0, $limit = 5, $newuser, $isTimeline = FALSE;
+    var $uid, $id, $start = 0, $limit = 5, $newuser, $isTimeline = FALSE, $allcom;
 
     public function __construct() {
         
@@ -58,6 +58,8 @@ class Community {
                     $sql = "SELECT id,creator_id,unique_name,`name`,category,`pix`,thumbnail100,thumbnail150,thumbnail150,`type`,description,verified,`enableMemberPost` FROM community WHERE unique_name='$comname'";
                 } else if ($this->newuser) {
                     $sql = "SELECT DISTINCT cs.`community_id` as id,c.creator_id,c.unique_name,c.`name`,category,c.`pix`,c.thumbnail100,c.thumbnail150,c.thumbnail150,c.`type`,c.description,c.verified,`enableMemberPost` FROM community_subscribers as cs, community as c  WHERE c.id = cs.community_id AND cs.community_id NOT IN (SELECT community_id FROM `community_subscribers` WHERE user = $this->uid AND leave_status = 0) order by c.name asc LIMIT $start, $limit";
+                } else if ($this->allcom) {
+                    $sql = "SELECT DISTINCT cs.`community_id` as id,c.creator_id,c.unique_name,c.`name`,category,c.`pix`,c.thumbnail100,c.thumbnail150,c.thumbnail150,c.`type`,c.description,c.verified,`enableMemberPost` FROM community_subscribers as cs JOIN community as c ON cs.community_id=c.id order by c.name asc LIMIT $start, $limit";
                 } else {
                     $sql = "SELECT cs.`community_id` as id,c.creator_id,c.unique_name,c.`name`,category,c.`pix`,c.thumbnail100,c.thumbnail150,c.thumbnail150,c.`type`,c.description,c.verified,`enableMemberPost` FROM community_subscribers as cs JOIN community as c ON cs.community_id=c.id  WHERE cs.`user`=$this->uid AND cs.leave_status=0 order by c.name asc LIMIT $start,$limit";
                 }
@@ -65,11 +67,7 @@ class Community {
                 if ($comname) {
                     $sql = "SELECT id,creator_id,unique_name,`name` FROM community WHERE unique_name='$comname'";
                 } else {
-                    if ($this->isTimeline) {
-                        $sql = "SELECT cs.`community_id` as id,c.creator_id,c.unique_name,c.`name` FROM community_subscribers as cs JOIN community as c ON cs.community_id=c.id  WHERE cs.`user`=$this->uid AND cs.leave_status=0 AND c.`enableMemberPost`=1 order by c.name asc LIMIT $start,$limit";
-                    } else {
-                        $sql = "SELECT cs.`community_id` as id,c.creator_id,c.unique_name,c.`name` FROM community_subscribers as cs JOIN community as c ON cs.community_id=c.id  WHERE cs.`user`=$this->uid AND cs.leave_status=0 order by c.name asc LIMIT $start,$limit";
-                    }
+                    $sql = "SELECT cs.`community_id` as id,c.creator_id,c.unique_name,c.`name` FROM community_subscribers as cs JOIN community as c ON cs.community_id=c.id  WHERE cs.`user`=$this->uid AND cs.leave_status=0 order by c.name asc LIMIT $start,$limit";
                 }
             }
             if ($result = $mysql->query($sql)) {
@@ -308,6 +306,10 @@ class Community {
 
     public function setIsTimeline($isTimeline) {
         $this->isTimeline = $$isTimeline;
+    }
+
+    public function setAllCom() {
+        $this->allcom = true;
     }
 
     /**

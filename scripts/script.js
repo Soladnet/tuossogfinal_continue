@@ -16,7 +16,8 @@ function sendData(callback, target) {
                 limit: target.limit,
                 more: target.more,
                 newuser: target.newuser,
-                uid: target.uid
+                uid: target.uid,
+                comType: target.comType
             }
         };
 
@@ -1583,57 +1584,50 @@ function loadCommunity(response, statusText, target) {
                 $(target.target).html('<div class="posts"></div>');
             }
         } else {
+            //this part load the major public communities for either a first user or when 'see all' is clicked;
             var commCount = response.length;
             $.each(response, function(i, response) {
                 if (target.target === "#aside-community-list") {
                     htmlstr += '<div class="community-listing"><span><a href="' + response.unique_name + '">' + response.name + '</a></span></div><hr>';
-                } else if (target.target === ".community-box") {
+                } else if (target.target === "#all-communities-list" || target.target === "#my-communities-list") {
                     htmlstr += '<div class="community-box-wrapper"><div class="community-image">' +
                             '<img onload="OnImageLoad(event);" src="' + response.thumbnail150 + '">' +
                             '</div><div class="community-text"><div class="community-name">' +
                             '<a href="' + response.unique_name + '">' + (response.verified === "1" ? '<img src="images/gossout-verified.png" class="verified-community" title="Verified Community">' : "") + response.name + '</a> </div><hr><div class="details">' + (response.description.length > 100 ? br2nl(response.description).substring(0, 100) + "..." : br2nl(response.description)) +
-                            '</div><div class="members">' + response.type + '</div><div class="members">' + response.mem_count + ' ' + (response.mem_count > 1 ? "Members" : "Member") + '</div><div class="members">' + response.post_count + ' ' + (response.post_count > 1 ? "Posts" : "Post") + '</div></div>' + ((target.newuser) ? '<a class="float-right joinCom" id="joinCom-' + response.id + '">Join</a>' : "") + '<div class="clear"></div></div>';
+                            '</div><div class="members">' + response.type + '</div><div class="members">' + response.mem_count + ' ' + (response.mem_count > 1 ? "Members" : "Member") + '</div><div class="members">' + response.post_count + ' ' + (response.post_count > 1 ? "Posts" : "Post") + '</div></div>' + ((response.isAmember == 'false') ? '<a class="float-right joinCom" id="joinCom-' + response.id + '">Join</a>' : "") + '<div class="clear"></div></div>';
                 }
             });
 
-            if (!target.newuser) {
-                if (target.more) {
-                    if (htmlstr !== "")
-                        $('.community-box').append(htmlstr);
-                    if (commCount < 10) {
-                        $('#loadMoreComm').hide();
-                        humane.log("Oops! You've got it all!", {
-                            timeout: 20000,
-                            clickToClose: true,
-                            addnCls: 'humane-jackedup-success'
-                        });
-                    } else {
-                        $('#loadMoreComm').attr('comm', parseInt($('#loadMoreComm').attr('comm')) + 10);
-                    }
-                    $('#loader1').hide();
-                } else {//newcomm
-                    if (htmlstr !== "")
-                        $(target.target).html(htmlstr);
-                    if (commCount >= 10)
-                        $('#loadMoreComm').show();
-                }
-                $(".joinCom").click(function() {
-                    showOption(this);
-                });
-            } else {//welcomemsg
 
+            if (target.more) {
                 if (htmlstr !== "") {
-                    if (!target.append) {
-                        $('.community-box').html(htmlstr);
-                        $('#exploreMoreComm').show();
+                    $(target.target).append(htmlstr);
+                    $('#loader1').hide();
+                }
+
+                if (commCount < target.limit) {
+                    $('#loadMoreComm,#loader1').hide();
+                    humane.log("Oops! You've got it all!", {
+                        timeout: 20000,
+                        clickToClose: true,
+                        addnCls: 'humane-jackedup-success'
+                    });
+                } else {
+                    $('#loadMoreComm').show();
+                    if (target.comType == 'allCom') {
+                        $('#loadMoreComm').attr('allcomm', parseInt($('#loadMoreComm').attr('allcomm')) + target.limit);
                     }
 
-                    else {
-                        $('.community-box').append(htmlstr);
-                        $('#exploreMoreComm').show();
-                        $('#exploreMoreComm').attr('newcomm', parseInt($('#exploreMoreComm').attr('newcomm')) + 10);
+                    if (target.comType == 'myCom') {
+                        $('#loadMoreComm').attr('mycomm', parseInt($('#loadMoreComm').attr('mycomm')) + target.limit);
                     }
+
                 }
+            } else {//newcomm
+                if (htmlstr !== "")
+                    $(target.target).html(htmlstr);
+                if (commCount == target.limit)
+                    $('#loadMoreComm').show();
             }
             $(".joinCom").click(function() {
                 showOption(this);
@@ -1641,51 +1635,29 @@ function loadCommunity(response, statusText, target) {
         }
 
     } else {
-        $(".community-search-box").hide();
-        if (response.error.code) {
-            if (target.target !== "#aside-community-list") {
-                $("#pageTitle").html("Suggested Community");
-                if (target.loadAside) {
-                    $("#commTitle").html(response.error.message);
-                    $("#commDesc").html(response.error.message);
-                    $("#comType").html("N/A");
-                    $("#joinleave").hide();
-                    $("#loadCommore").hide();
-                    $(target.target).html('<div class="communities-list"><h1 id="pageTitle">Communities</h1><hr/><div id="creatComDiv"><h3>Would you like to create one? It\'s very easy!<br><div class="button"><a href="create-community">New Community</a></div></h3><div class="community-box"></div></div></div>');
-                    sendData("loadSuggestCommunity", {
-                        target: ".community-box",
-                        uid: target.uid,
-                        loadImage: true,
-                        max: true
-                    });
-                } else {
-                    if (!target.newuser) {
-                        if (!target.more)
-                            sendData("loadSuggestCommunity", target);
-                        else {
-                            humane.log("Oops! You've got it all!", {
-                                timeout: 20000,
-                                clickToClose: true,
-                                addnCls: 'humane-jackedup-success'
-                            });
-                            $('#loadMoreComm').hide();
 
-                        }
-                    } else {
-                        $('#exploreMoreComm').hide();
-                        $('#welcome').html('You are set!');
-                        $('#welcomemsg').html('Yeap! You have joined all the Communities we seggested to. Mingle within your Communities to meet more people. Big thanks for that!.');
+        if (target.loadAside) {//this means specific community is being loaded 
+            if (response.error.code) {
+                if (target.target !== "#aside-community-list") {
+                    $("#pageTitle").html("Suggested Community");
+                    if (target.loadAside) {
+                        $("#commTitle").html(response.error.message);
+                        $("#commDesc").html(response.error.message);
+                        $("#comType").html("N/A");
+                        $("#joinleave").hide();
+                        $("#loadCommore").hide();
+                        $(target.target).html('<div class="communities-list"><h1 id="pageTitle">Communities</h1><hr/><div id="creatComDiv"><h3>Would you like to create one? It\'s very easy!<br><div class="button"><a href="create-community">New Community</a></div></h3><div class="community-box"></div></div></div>');
                     }
                 }
-            } else {
-
-                $(target.target).html("<span id='noCom'>No community found!</span>");
             }
+        } else {
+            humane.log("Oops! You've got it all!", {
+                timeout: 20000,
+                clickToClose: true,
+                addnCls: 'humane-jackedup-success'
+            });
+            $('#loader1,#loadMoreComm').hide();
         }
-    }
-    if (target.more) {
-        $('#loader1').hide();
-        $("#pageTitle").html("My Community");
     }
 }
 function leaveJoinCommunity(response, statusText, target) {
@@ -1758,15 +1730,10 @@ function loadSuggestCommunity(response, statusText, target) {
 }
 function likePost(response, statusText, target) {
     $(target.target).hide();
-    var holdLike = $("#likeAction-" + target.postId).html();
-    $("#likeAction-" + target.postId).html(holdLike === 'Like' ? 'Unlike' : 'Like');
-
-    (holdLike === 'Like') ? $('#likeCount-' + target.postId).html(parseInt($('#likeCount-' + target.postId).html()) + 1) : $('#likeCount-' + target.postId).html(parseInt($('#likeCount-' + target.postId).html()) - 1);
-    if (holdLike === 'Unlike') {
-        watchLike(target.postId);
-    }
+    if (response.status)
+        $("#likeAction-" + target.postId).html(response.action === 'Like' ? 'Unlike' : 'Like');
+    (response.status) ? $('#likeCount-' + target.postId).html(response.countLike) : "";
     $(".hideLikeCount#likeAction-showCount-" + target.postId).show();
-
 }
 function loadPost(response, statusText, target) {
     if (!response.error) {
@@ -2227,8 +2194,6 @@ function manageError(jqXHR, textStatus, errorThrown) {
         msg = "Network timeout.";
     } else if (textStatus === "parsererror") {
         msg = "Opps! something critical just happened...Our team will fix this soon ";
-    } else if (jqXHR.statusCode === 502) {
-        //        msg = "Proxy server received an invalid response...try again reload this page to fix this";
     }
     if (msg !== "")
         humane.log(msg, {
@@ -2242,7 +2207,7 @@ function manageError(jqXHR, textStatus, errorThrown) {
         textStatus: textStatus,
         errorThrown: errorThrown
     };
-    if (textStatus !== "timeout" && textStatus !== "" && jqXHR.readyState !== 0)
+    if (textStatus !== "timeout" && textStatus !== "" && jqXHR.readyState !== 0 && jqXHR.statusCode === 504)
         sendData("logError", option);
 }
 function showOption(obj) {
@@ -3184,8 +3149,8 @@ function minimizeChatToggle(comId) {
     }
 }
 function logoutCommunityChat(comId) {
-    if($("#comChat_"+comId).length>0){
-        $("#comChat_"+comId).remove();
+    if ($("#comChat_" + comId).length > 0) {
+        $("#comChat_" + comId).remove();
     }
-    $.tzPOST('logout',{comid:comId});
+    $.tzPOST('logout', {comid: comId});
 }

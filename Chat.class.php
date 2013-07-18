@@ -134,7 +134,7 @@ class Chat {
 //        DB::query("DELETE FROM community_chat WHERE time < SUBTIME(NOW(),'0:5:0')");
         DB::query("UPDATE community_chat_online set `isOnline`=0 WHERE com_id=$comid AND user_id=$uid AND time < SUBTIME(NOW(),'0:0:30')");
 
-        $result = DB::query('SELECT cco.`com_id`, cco.`user_id`,concat(u.firstname,u.lastname) as name, cco.`isOnline` FROM `community_chat_online` as cco JOIN user_personal_info as u ON cco.user_id=u.id WHERE cco.`isOnline`=1 ORDER BY cco.user_id ASC');
+        $result = DB::query("SELECT cco.`com_id`, cco.`user_id`,concat(u.firstname,u.lastname) as name, cco.`isOnline` FROM `community_chat_online` as cco JOIN user_personal_info as u ON cco.user_id=u.id WHERE cco.`isOnline`=1 AND cco.com_id=$comid ORDER BY cco.user_id ASC");
         $users = array();
         while ($user = $result->fetch_object()) {
             $u->setUserId($user->user_id);

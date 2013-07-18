@@ -59,6 +59,7 @@ if (isset($_COOKIE['user_auth'])) {
         <script src="scripts/jquery.jscrollpane.min.js"></script>
         <script type="text/javascript">
             var current;
+            var start = 0, limit = 10, currentCom = 'myCom';
             $(document).ready(function() {
                 var currentLocation = window.location + "";
                 var lastChar = currentLocation.substring(currentLocation.length - 1);
@@ -67,8 +68,7 @@ if (isset($_COOKIE['user_auth'])) {
                 }
                 current = currentLocation.split("/");
                 if (current[current.length - 1].toLowerCase() === "communities") {
-                    sendData("loadCommunity", {target: ".community-box", loadImage: true, max: true, start: 0, limit: 10});
-
+                    sendData("loadCommunity", {target: "#my-communities-list", comType: 'myCom', loadImage: true, max: true, start: 0, limit: limit});
                     $("#searchForm").validationEngine();
                     $("#searchForm").ajaxForm({
                         beforeSend: function() {
@@ -106,42 +106,80 @@ if (isset($_COOKIE['user_auth'])) {
                             uid: readCookie('user_auth')
                         }
                     });
-                    $('#loadMoreComm,#loader1').hide();
-                    $('#all').addClass('active');
-                    $("#all").click(function() {
-                        $('#my-communities-list').show();
-                        $('#suggestion-list').show();
-                        $('#my-communities').removeClass('active');
-                        $('#suggestions').removeClass('active');
-                        $('#all').addClass('active');
+                    $('.clicked').click(function() {
+                        $('#loadMoreComm').show();
                     });
-                    $("#suggestions").click(function() {
-                        $('#my-communities-list').hide();
-                        $('#suggestion-list').show();
-                        $('#all').removeClass('active');
-                        $('#my-communities').removeClass('active');
-                        $('#suggestions').addClass('active');
-                    });
+                    $('#my-communities').addClass('active clicked');
+
                     $("#my-communities").click(function() {
-                        $('#suggestion-list').hide();
-                        $('#my-communities-list').show();
-                        $('#all').removeClass('active');
-                        $('#suggestions').removeClass('active');
+                        currentCom = 'myCom';
+                        $('#all-communities-list,#suggestion-list').hide();
+                        $('#suggestions,#all').removeClass('active');
                         $('#my-communities').addClass('active');
+                        $('#my-communities-list').show();
                     });
-                    var start = 0, limit = 10;
-                    //                   
+
+                    $("#all").click(function() {
+                        currentCom = 'allCom';
+                        start = 0;
+                        $('#loadMoreComm').show();
+                        $('#suggestion-list,#my-communities-list').hide();
+                        $('#all-communities-list').show();
+                        $('#suggestions,#my-communities').removeClass('active');
+                        $('#all').addClass('active');
+                        if (!($(this).hasClass('clicked'))) {
+                            sendData("loadCommunity", {target: "#all-communities-list", comType: 'allCom', loadImage: false, max: true, start: start, limit: limit});
+                            $(this).addClass('clicked');
+                        }
+
+                    });
+
+                    $("#suggestions").click(function() {
+                        currentCom = 'sugCom';
+                        start = 0;
+                        $('#all-communities-list,#my-communities-list').hide();
+                        $('#suggestion-list').show();
+                        //		   
+                        $('#my-communities,#all').removeClass('active');
+                        $('#suggestions').addClass('active');
+                        sendData("loadSuggestCommunity", {
+                            target: "#suggestion-list",
+                            loadImage: true,
+                            max: true,
+                            start: start,
+                            Limit: limit
+                        });
+                    });
+
+                    var theTraget;
                     $('#loadMoreComm').click(function() {
-                        start = parseInt($(this).attr('comm'));
                         $('#loader1').show();
-                        sendData("loadCommunity", {target: ".community-box", loadImage: false, max: true, start: start, limit: limit, more: true});
-                        return false;
+                        if (currentCom === 'allCom') {
+                            theTraget = '#all-communities-list';
+                            start = parseInt($('#loadMoreComm').attr('allcomm'));
+                        }
+                        else if (currentCom === 'myCom') {
+                            theTraget = '#my-communities-list';
+                            start = parseInt($('#loadMoreComm').attr('mycomm'));
+                        }
+                        else if (currentCom === 'sugCom') {
+                            theTraget = '#suggestion-list';
+                            start = parseInt($('#loadMoreComm').attr('sugcomm'));
+                        } else {
+
+                        }
+                        if (currentCom === 'allCom' || currentCom === 'myCom') {
+                            sendData("loadCommunity", {target: theTraget, comType: currentCom, loadImage: false, max: true, start: start, limit: limit, more: true});
+                            return false;
+                        } else if (currentCom === 'sugCom') {
+                            sendData("loadSuggestCommunity", {target: theTraget, loadImage: true, max: true, start: start, Limit: limit, more: true});
+                            return false;
+                        } else {
+
+                        }
+
                     });
                 } else {
-                    //                var lastIndexOfSlash = currentLocation.lastIndexOf("/");
-//                if (current[current.length - 1].toLowerCase() !== "communities" && current[current.length - 2].toLowerCase() !== "communities") {
-//                    History.pushState({state: history.length + 1, rand: Math.random()}, current[current.length - 1], currentLocation.substring(0, lastIndexOfSlash + 1) + "communities/" + current[current.length - 1]);
-//                }
                     if (current[current.length - 2].toLowerCase() === "communities") {
                         sendData("loadCommunity", {target: "#rightcolumn", loadImage: true, max: true, loadAside: true, comname: current[current.length - 1], start: 0, limit: 10});
                     } else if (current[current.length - 3].toLowerCase() === "communities") {
@@ -172,34 +210,57 @@ if (isset($_COOKIE['user_auth'])) {
             <div class="logo"><img src="images/gossout-logo-text-svg.svg" alt=""></div>
 
             <div class="content">
-                <span id="rightcolumn">
-                    <div class="communities-list">
-                        <h1 id="pageTitle">My Communities</h1>
+                <span id="rightcolumn" class="">
+                    <?php if ($_GET['page'] == "communities" && $_GET['param'] == "") { ?>
+                        <div class="communities-list">
+                            <div>
+                                <div style="float:left;background:#f8f8f8;padding:3px;width:94px;border:1px solid #c6c6c6;"><a href="create-community">Create new </a></div>
+                                <div><h3>&nbsp;Communities of your own World! It's pretty easy!</h3></div>
+                            </div>
+                            <div class="clear"></div>      
+                            <h1>Communities</h1>
 
-                        <div class="community-search-box">
-                            <form action="tuossog-api-json.php" method="POST" id="searchForm">
-                                <input name="a" class="community-search-field validate[required]" id="searchTerm" placeholder="Search your communities" type="text" value="" >
-                                <input type="submit" class="button" value="Search">
-                            </form>
+                            <div class="community-search-box">
+                                <form action="tuossog-api-json.php" method="POST" id="searchForm">
+                                    <input name="a" class="community-search-field validate[required]" id="searchTerm" placeholder="Search your communities" type="text" value="" >
+                                    <input type="submit" class="button" value="Search">
+                                </form>
+                            </div>
+                            <div class="clear"></div>
+
+
+                            <div class="community-box">
+                                <div class="timeline-filter">
+                                    <ul>
+                                        <li><span class="icon-16-earth"></span></li>
+                                        <li id="my-communities"><a>My Communities</a></li>
+                                        <!--<li id="suggestions"><a>Suggested</a></li>-->
+                                        <li id="all"><div ><a>All</a></li>
+
+
+                                    </ul>
+                                </div>
+                                <div class="clear"></div>
+                                <div id="my-communities-list">
+
+                                </div>
+                                <div id="suggestion-list">
+
+                                </div>
+                                <div id="all-communities-list">
+
+                                </div>
+
+
+
+
+                            </div>
+                            <div class="button" style="float:left;margin-top: -10px;display:none" id="loadMoreComm" allcomm="10" mycomm="10" sugcomm="10">
+                                <a href="">Load more > ></a>
+                            </div>&nbsp;<img src='images/loading.gif' style='border:none;margin-top: -10px;display:none' id="loader1"/>
+
                         </div>
-                        <div class="clear"></div>
-                        <hr/>
-                        <div id="creatComDiv">
-                            <h3>Would you like to create one? It's very easy and free! 
-
-                                <div class="button"><a href="create-community">Start a Community</a></div>
-                            </h3>
-                            <!--fgsgh,vmcpeirvohh-->
-                        </div>
-
-                        <div class="community-box">
-
-                        </div><p>
-                        <div class="button" style="float:left;" id="loadMoreComm" comm="10">
-                            <a href="">Load more > ></a>
-                        </div>&nbsp;<img src='images/loading.gif' style='border:none' id="loader1"/>
-                    </div>
-
+                    <?php } ?>
                 </span>
 
                 <?php
@@ -208,7 +269,9 @@ if (isset($_COOKIE['user_auth'])) {
                 } else {
                     include("aside.php");
                 }
-                ?>	
+                ?>
+
+
             </div>
             <?php
             include("footer.php");

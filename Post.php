@@ -118,9 +118,11 @@ class Post {
                             $row['post_photo'] = $post_image['photo'];
                         }
                         $row['time'] = $this->convert_time_zone($row['time'], $this->tz);
-                        $row['sender_id'] = $encrypt->safe_b64encode($row['sender_id']);
+                        $row['isLike'] = $this->isLike($row['id'], $this->uid);
                         $row['likeCount'] = $this->getLikeCount($row['id']);
-                        $row['isLike'] = $this->isLike($row['id']);
+                        $row['sender_id'] = $encrypt->safe_b64encode($row['sender_id']);
+
+
 
                         $arrFetch['post'][] = $row;
                     }
@@ -138,13 +140,13 @@ class Post {
     }
 
     public function getLikeCount($post_id) {
-        $likeCount = false;
+        $likeCount = 0;
         $mysql = new mysqli(HOSTNAME, USERNAME, PASSWORD, DATABASE_NAME);
         //$count = 0;
         if ($mysql->connect_errno > 0) {
             throw new Exception("Connection to server failed!");
         } else {
-            $sql = "SELECT `time` as likeCount FROM `like` WHERE `post_id` = '$post_id'";
+            $sql = "SELECT `time` FROM `like` WHERE `post_id` = '$post_id'";
             if ($result = $mysql->query($sql)) {
                 $likeCount = $result->num_rows;
 //                     $likeCount = $row['likeCount'];
@@ -154,23 +156,6 @@ class Post {
         }
         $mysql->close();
         return $likeCount;
-    }
-
-    public function isLike($post_id) {
-        $isLike = false;
-        $mysql = new mysqli(HOSTNAME, USERNAME, PASSWORD, DATABASE_NAME);
-        //$count = 0;
-        if ($mysql->connect_errno > 0) {
-            throw new Exception("Connection to server failed!");
-        } else {
-            $sql = "SELECT `user_id` as isLike FROM `like` WHERE `post_id` =  '$post_id'";
-            if ($result = $mysql->query($sql)) {
-                $num = $result->num_rows;
-                ($num > 0) ? $isLike = true : '';
-            }
-        }
-        $mysql->close();
-        return $isLike;
     }
 
     public function manageLikePost($action, $post_id, $uid) {
@@ -183,15 +168,37 @@ class Post {
             if ($action == 'Like')
                 $sql = "INSERT INTO `like` (`post_id`,`user_id`) VALUES ('$post_id', '$uid')";
             if ($action == 'Unlike')
-                $sql = "Delete From `like` WHERE `user_id` = '$uid'";
-            
+                $sql = "Delete From `like` WHERE `post_id` = '$post_id' AND user_id = '$uid'";
             if ($result = $mysql->query($sql)) {
-                ($mysql->affected_rows > 0) ? $status = true : '';
-            } 
+                ($mysql->affected_rows != 0) ? $status = true : '';
+            } else {
+//                $arr['sql'] = $sql;
+            }
         }
         $mysql->close();
         $arr['status'] = $status;
+        $arr['action'] = $action;
+//        $arr['sql'] = $sql;
+        $arr['countLike'] = $this->getLikeCount($post_id);
         return $arr;
+    }
+
+    public function isLike($post_id, $user_id) {
+        $isLike = false;
+        $mysql = new mysqli(HOSTNAME, USERNAME, PASSWORD, DATABASE_NAME);
+        //$count = 0;
+        if ($mysql->connect_errno > 0) {
+            throw new Exception("Connection to server failed!");
+        } else {
+            $sql = "SELECT * FROM `like` WHERE `post_id` =  '$post_id' AND user_id = '$user_id'";
+            if ($result = $mysql->query($sql)) {
+                $num = $result->num_rows;
+                ($num == 1) ? $isLike = true : '';
+//                $isLike = $sql;
+            }
+        }
+        $mysql->close();
+        return $isLike;
     }
 
     public function loadPostImage($postId) {
